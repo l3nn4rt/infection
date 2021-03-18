@@ -12,7 +12,7 @@ import random
 import networkx as nx
 #import matplotlib.pyplot as plt
 
-import plot_basic
+from infection.visualization import plot_basic
 
 
 class NodeState(enum.Enum):
