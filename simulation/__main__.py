@@ -5,66 +5,14 @@ Simulate epidemic spreading in a SI[R][S]-model based network.
 """
 
 import argparse
-import enum
-import json
 import random
 
 import networkx as nx
-#import matplotlib.pyplot as plt
 
-from infection.visualization import plot_basic
-
-
-class NodeState(enum.Enum):
-    SUSCEPTIBLE = {
-            'cli_str': '\033[1;34m*\033[0m',
-            'plt_col': 'lightblue'
-    }
-    INFECTIOUS  = {
-            'cli_str': '\033[1;31m*\033[0m',
-            'plt_col': 'red'
-    }
-    RECOVERED   = {
-            'cli_str': '\033[1;32m*\033[0m',
-            'plt_col': 'green'
-    }
-
-
-class Animation:
-    def __init__(self, graph):
-        self.g = graph
-
-    def update(self):
-        cols = [self.g.nodes[l]['state'].value['plt_col'] for l in self.g.nodes]
-        #nx.draw(self.g, pos=nx.spring_layout(self.g),
-        #        with_labels=True, node_color=cols)
-        #plt.show()
-        plot_basic.plot_graph(self.g, cols)
-
-
-class InfectionEvolution:
-    def __init__(self, graph):
-        self.g = graph
-        self.rounds = []
-
-    def update(self):
-        self.rounds.append({
-            'infectious': [l for l in self.g.nodes \
-                    if self.g.nodes[l]['state'] == NodeState.INFECTIOUS],
-            'recovered': [l for l in self.g.nodes \
-                    if self.g.nodes[l]['state'] == NodeState.RECOVERED]
-        })
-
-    def __str__(self):
-        return json.dumps({
-            'nodes': list(self.g.nodes),
-            'rounds': self.rounds
-        })
-
-
-def print_timeline(t, g):
-    print('[%3d]' % t, ''.join([g.nodes[l]['state'].value['cli_str']
-        for l in sorted(g, key=str)]))
+from infection.node import NodeState
+from infection.simulation.evolution import InfectionEvolution
+from infection.visualization.animation import Animation
+from infection.visualization.timeline import print_timeline
 
 
 def main():
