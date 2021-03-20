@@ -10,9 +10,8 @@ import random
 import networkx as nx
 
 from infection.node import NodeState
-from infection.simulation.evolution import InfectionEvolution
+from infection.simulation.evolution import Evolution
 from infection.visualization.animation import Animation
-from infection.visualization.timeline import print_timeline
 
 
 def main():
@@ -131,15 +130,13 @@ def main():
             node['state'] = NodeState.SUSCEPTIBLE
 
     curr_round = 0
-    if args.timeline:
-        print_timeline(curr_round, g)
     animation = None
     if args.animate:
         animation = Animation(g)
         animation.update()
     evolution = None
-    if args.json:
-        evolution = InfectionEvolution(g)
+    if args.json or args.timeline:
+        evolution = Evolution(g)
         evolution.update()
 
     # - the infection spreading consists of a sequence of rounds;
@@ -179,15 +176,15 @@ def main():
                 node['state-end'] = None
 
         curr_round += 1
-        if args.timeline:
-            print_timeline(curr_round, g)
         if args.animate:
             animation.update()
-        if args.json:
+        if args.json or args.timeline:
             evolution.update()
 
+    if args.timeline:
+        print(evolution.timeline)
     if args.json:
-        print(evolution)
+        print(evolution.json)
 
 if __name__ == "__main__":
     main()
