@@ -4,57 +4,42 @@
 Generate graphs.
 """
 
-import os
+import argparse
 
 import networkx as nx
 
 from infection.generation.factory import Factory
 
-SAMPLES_DIR = 'sample'
-
-def mkdir_p(path):
-    """Emulate native `mkdir -p`."""
-    acc = ''
-    for d in path.split(os.sep):
-        acc = os.path.join(acc, d)
-        try:
-            os.mkdir(acc)
-        except OSError as e:
-            # dir exists
-            pass
-
 
 def main():
-    f = Factory()
+    parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
+    subparsers = parser.add_subparsers(
+            metavar= 'TEMPLATE',
+            help="""One from the available graph templates listed below.
+            This must be specified exaclty as shown, in all capital letters
+            and underscores.""",
+            required=True)
 
-    # toroidal grids
-    for m, n in [(5,20), (100, 100)]:
-        g = f.build(Factory.Template.TORUS, m=m, n=n)
+    # create a parser for each template
+    for templ in Factory.Template:
+        t_parser = subparsers.add_parser(templ.name, help=templ.value['help'])
+        # store selected template
+        t_parser.set_defaults(template=templ)
 
-        g_dir = os.path.join(SAMPLES_DIR, 'toro-%d-%d' % (m, n))
-        mkdir_p(g_dir)
-        nx.write_adjlist(g, os.path.join(g_dir, 'graph.adjlist'))
+        templ_vars = templ.value['vars']
+        # require specific arguments for each template
+        for tv in templ_vars:
+            value = templ_vars[tv]
+            t_parser.add_argument('-' + tv, help=value['help'],
+                    type=value['type'], required=True)
 
-    # graphs whose edges have a probability to exist
-    for n, p in [(60, 0.10), (100, 0.05)]:
-        er = f.build(Factory.Template.ERDOS_RENYI, n=n, p=p)
+    # create graph
+    args = parser.parse_args().__dict__
+    templ = args.pop('template')
+    g = Factory().build(templ, **args)
 
-        er_dir = os.path.join(SAMPLES_DIR, 'erdos-renyi-%d-%0.2f' % (n, p))
-        mkdir_p(er_dir)
-        nx.write_adjlist(er, os.path.join(er_dir, 'graph.adjlist'))
-
-        cer = f.build(Factory.Template.CYCLE_U_ERDOS_RENYI, n=n, p=p)
-        cer_dir = os.path.join(SAMPLES_DIR, 'cycle-plus-erdos-renyi-%d-%0.2f' % (n, p))
-        mkdir_p(cer_dir)
-        nx.write_adjlist(cer, os.path.join(cer_dir, 'graph.adjlist'))
-
-    # cycle with random perfect matching
-    for n in [128, 256, 512]:
-        g = f.build(Factory.Template.CYCLE_U_PERFECT_MATCHING, n=n)
-
-        g_dir = os.path.join(SAMPLES_DIR, 'cycle-plus-perfect-matching-%d' % n)
-        mkdir_p(g_dir)
-        nx.write_adjlist(g, os.path.join(g_dir, 'graph.adjlist'))
+    for line in nx.generate_adjlist(g):
+        print(line)
 
 if __name__ == "__main__":
     main()
