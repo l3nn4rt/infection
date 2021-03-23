@@ -6,7 +6,7 @@ from infection.node import NodeState
 
 plot_settings = {
         # NODE SPECS
-        'with_labels': True,        # labels
+        #'with_labels': True,        # labels
         'node_shape':   'o',        # one of ‘so^>v<dph8'
         'node_size':    150,        # size
         'linewidths':    .4,        # node border width
