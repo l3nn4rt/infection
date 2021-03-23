@@ -11,7 +11,6 @@ import networkx as nx
 
 from infection.node import NodeState
 from infection.simulation.evolution import Evolution
-from infection.visualization.animation import Animation
 
 
 def main():
@@ -21,10 +20,6 @@ def main():
             help="""File containing the graph adjacency list or the graph edge
             list without data. If missing or -, read standard input.""",
             type=argparse.FileType(), nargs='?', default='-')
-    # plot animation (default: false)
-    parser.add_argument('-a', '--animate',
-            help="""Animate the contagion; this is very CPU-intensive and not
-            suitable for large graphs.""", action='store_true')
     # flag to read graph file as edge list (default: false)
     parser.add_argument('-e', '--edges',
             help="""Treat graph file as edge list. This option allows to ignore
@@ -36,15 +31,6 @@ def main():
             If missing, the infection duration is one round (i.e. the node
             becomes recovered after one round in the infectious state).""",
             type=int, default=1)
-    # print infection evolution (default: false)
-    parser.add_argument('-j', '--json',
-            help="""Print infection evolution on the standard output in JSON.
-            Property 'nodes' contains the list of graph nodes. Property 'rounds'
-            contains a list of objects for the infection rounds; each
-            round contains properties 'infectious' and 'recovered';
-            'infectious' property contains the list of infectious nodes at the
-            given round; 'recovered' property contains the list of recovered
-            nodes at the given round.""", action='store_true')
     # try to save nodes as integers
     parser.add_argument('-n', '--numeric', metavar='MODE',
             help="""Treat node labels as numbers when possible. If MODE is
@@ -63,10 +49,6 @@ def main():
             help="""How many rounds a recovered node is immune to the infection.
             If missing, the recovered state is final (i.e. the node will not
             become susceptible again).""", type=int, default=None)
-    # print timeline (default: false)
-    parser.add_argument('-t', '--timeline',
-            help="""Print node states at each round on the standard output; this
-            option requires a color-capable terminal.""", action='store_true')
     # initially infectious nodes(s):
     zero_g = parser.add_mutually_exclusive_group(required=True)
     # - from the command line
@@ -130,14 +112,8 @@ def main():
             node['state'] = NodeState.SUSCEPTIBLE
 
     curr_round = 0
-    animation = None
-    if args.animate:
-        animation = Animation(g)
-        animation.update()
-    evolution = None
-    if args.json or args.timeline:
-        evolution = Evolution(g)
-        evolution.update()
+    evolution = Evolution(g)
+    evolution.update()
 
     # - the infection spreading consists of a sequence of rounds;
     # - each round consists of two phases:
@@ -176,15 +152,9 @@ def main():
                 node['state-end'] = None
 
         curr_round += 1
-        if args.animate:
-            animation.update()
-        if args.json or args.timeline:
-            evolution.update()
+        evolution.update()
 
-    if args.timeline:
-        print(evolution.timeline)
-    if args.json:
-        print(evolution.json)
+    print(evolution)
 
 if __name__ == "__main__":
     main()
