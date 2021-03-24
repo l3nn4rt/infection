@@ -14,7 +14,7 @@ from infection.visualization.timeline import Timeline
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
     # input graph file
     parser.add_argument('evolution_file', metavar='EVOLUTION',
             help="""File containing the infection evolution (JSON format).

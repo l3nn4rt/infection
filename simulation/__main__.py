@@ -14,7 +14,7 @@ from infection.simulation.evolution import Evolution
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
     # input graph file
     parser.add_argument('graph_file', metavar='GRAPH-FILE',
             help="""File containing the graph adjacency list or the graph edge

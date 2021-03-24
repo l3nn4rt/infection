@@ -13,12 +13,10 @@ from infection.generation.factory import Factory
 
 def main():
     parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
-    subparsers = parser.add_subparsers(
-            metavar= 'TEMPLATE',
+    subparsers = parser.add_subparsers(metavar= 'TEMPLATE',
             help="""One from the available graph templates listed below.
-            This must be specified exaclty as shown, in all capital letters
-            and underscores.""",
-            required=True)
+            This must be specified exaclty as shown by the help command,
+            (all capital letters and underscores).""", required=True)
 
     # create a parser for each template
     for templ in Factory.Template:
