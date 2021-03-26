@@ -9,7 +9,7 @@ import random
 
 import networkx as nx
 
-from infection.node import NodeState
+from infection.node import State
 from infection.simulation.evolution import Evolution
 
 
@@ -104,12 +104,12 @@ def main():
     for label in g.nodes:
         node = g.nodes[label]
         if label in zeroes:
-            node['state'] = NodeState.INFECTIOUS
+            node['state'] = State.INFECTIOUS
             # round when the current state ends
             node['state-end'] = args.infection - 1
             infectious.add(label)
         else:
-            node['state'] = NodeState.SUSCEPTIBLE
+            node['state'] = State.SUSCEPTIBLE
 
     curr_round = 0
     evolution = Evolution(g)
@@ -124,7 +124,7 @@ def main():
         infected = set()
         for i in infectious:
             for neigh in g.neighbors(i):
-                if g.nodes[neigh]['state'] == NodeState.SUSCEPTIBLE \
+                if g.nodes[neigh]['state'] == State.SUSCEPTIBLE \
                         and random.random() < args.probability:
                     infected.add(neigh)
 
@@ -132,23 +132,23 @@ def main():
         for label in g.nodes:
             node = g.nodes[label]
             # susceptible node becomes infected
-            if node['state'] == NodeState.SUSCEPTIBLE \
+            if node['state'] == State.SUSCEPTIBLE \
                     and label in infected:
-                node['state'] = NodeState.INFECTIOUS
+                node['state'] = State.INFECTIOUS
                 node['state-end'] = curr_round + args.infection
                 infectious.add(label)
             # infectious node becomes recovered
-            elif node['state'] == NodeState.INFECTIOUS \
+            elif node['state'] == State.INFECTIOUS \
                     and node['state-end'] == curr_round:
-                node['state'] = NodeState.RECOVERED
+                node['state'] = State.RECOVERED
                 if args.recovery:
                     node['state-end'] = curr_round + args.recovery
                 infectious.remove(label)
             # recovered node becomes susceptible
-            elif node['state'] == NodeState.RECOVERED \
+            elif node['state'] == State.RECOVERED \
                     and node['state-end'] == curr_round \
                     and args.recovery is not None:
-                node['state'] = NodeState.SUSCEPTIBLE
+                node['state'] = State.SUSCEPTIBLE
                 node['state-end'] = None
 
         curr_round += 1

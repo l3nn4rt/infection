@@ -1,7 +1,7 @@
 import enum
 
 
-class NodeState(enum.Enum):
+class State(enum.Enum):
     SUSCEPTIBLE = {
             'cli_str': '\033[1;34m*\033[0m',
             'plt_col': 'lightblue'

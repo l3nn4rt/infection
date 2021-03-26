@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 import networkx as nx
 
-from infection.node import NodeState
+from infection.node import State
 
 plot_settings = {
         # NODE SPECS
@@ -36,11 +36,11 @@ class Animation2D:
         colors = []
         for node in self.graph:
             if node in infectious:
-                state = NodeState.INFECTIOUS
+                state = State.INFECTIOUS
             elif node in recovered:
-                state = NodeState.RECOVERED
+                state = State.RECOVERED
             else:
-                state = NodeState.SUSCEPTIBLE
+                state = State.SUSCEPTIBLE
             colors.append(state.value['plt_col'])
 
         # plot

@@ -1,6 +1,6 @@
 import math
 
-from infection.node import NodeState
+from infection.node import State
 
 
 class Timeline:
@@ -12,11 +12,11 @@ class Timeline:
             line_lst = ['[%*d] ' % (prefix_width, round_idx)]
             for label in nodes:
                 if label in round_dict['infectious']:
-                    line_lst.append(NodeState.INFECTIOUS.value['cli_str'])
+                    line_lst.append(State.INFECTIOUS.value['cli_str'])
                 elif label in round_dict['recovered']:
-                    line_lst.append(NodeState.RECOVERED.value['cli_str'])
+                    line_lst.append(State.RECOVERED.value['cli_str'])
                 else:
-                    line_lst.append(NodeState.SUSCEPTIBLE.value['cli_str'])
+                    line_lst.append(State.SUSCEPTIBLE.value['cli_str'])
             self.lines.append(''.join(line_lst))
 
     def __str__(self):

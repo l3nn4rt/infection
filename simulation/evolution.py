@@ -1,6 +1,6 @@
 import json
 
-from infection.node import NodeState
+from infection.node import State
 
 class Evolution:
 
@@ -11,9 +11,9 @@ class Evolution:
     def update(self):
         self.rounds.append({
             'infectious': [l for l in self.graph.nodes \
-                    if self.graph.nodes[l]['state'] == NodeState.INFECTIOUS],
+                    if self.graph.nodes[l]['state'] == State.INFECTIOUS],
             'recovered': [l for l in self.graph.nodes \
-                    if self.graph.nodes[l]['state'] == NodeState.RECOVERED]
+                    if self.graph.nodes[l]['state'] == State.RECOVERED]
         })
 
     def __str__(self):
