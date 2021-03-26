@@ -5,11 +5,9 @@ Simulate epidemic spreading in a SI[R][S]-model based network.
 """
 
 import argparse
-import random
 
 import networkx as nx
 
-from infection.node import State
 from infection.simulation.evolution import Evolution
 
 
@@ -99,61 +97,9 @@ def main():
             zeroes.update({subs[label] for label in subs if label in zeroes})
             zeroes.difference_update(subs)
 
-    # init node states
-    infectious = set()
-    for label in g.nodes:
-        node = g.nodes[label]
-        if label in zeroes:
-            node['state'] = State.INFECTIOUS
-            # round when the current state ends
-            node['state-end'] = args.infection - 1
-            infectious.add(label)
-        else:
-            node['state'] = State.SUSCEPTIBLE
-
-    curr_round = 0
-    evolution = Evolution(g)
-    evolution.update()
-
-    # - the infection spreading consists of a sequence of rounds;
-    # - each round consists of two phases:
-    #   1. infection
-    #   2. update
-    while infectious:
-        # 1. infectious nodes try to infect susceptible neighbors
-        infected = set()
-        for i in infectious:
-            for neigh in g.neighbors(i):
-                if g.nodes[neigh]['state'] == State.SUSCEPTIBLE \
-                        and random.random() < args.probability:
-                    infected.add(neigh)
-
-        # 2. node states are updated for the next round
-        for label in g.nodes:
-            node = g.nodes[label]
-            # susceptible node becomes infected
-            if node['state'] == State.SUSCEPTIBLE \
-                    and label in infected:
-                node['state'] = State.INFECTIOUS
-                node['state-end'] = curr_round + args.infection
-                infectious.add(label)
-            # infectious node becomes recovered
-            elif node['state'] == State.INFECTIOUS \
-                    and node['state-end'] == curr_round:
-                node['state'] = State.RECOVERED
-                if args.recovery:
-                    node['state-end'] = curr_round + args.recovery
-                infectious.remove(label)
-            # recovered node becomes susceptible
-            elif node['state'] == State.RECOVERED \
-                    and node['state-end'] == curr_round \
-                    and args.recovery is not None:
-                node['state'] = State.SUSCEPTIBLE
-                node['state-end'] = None
-
-        curr_round += 1
-        evolution.update()
-
+    evolution = Evolution(g, zeroes, args.probability,
+                          args.infection, args.recovery)
+    evolution.run()
     print(evolution)
 
 if __name__ == "__main__":
