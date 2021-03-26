@@ -6,7 +6,7 @@ from infection.node import State
 class Evolution:
 
     def __init__(self, graph, zeroes, contagion_probability,
-                 infection_duration, recovery_duration):
+                 infection_duration=1, recovery_duration=None):
         self.graph = graph
         self.zeroes = zeroes
         self.contagion_probability = contagion_probability
@@ -21,13 +21,20 @@ class Evolution:
             if label in self.zeroes:
                 node['state'] = State.INFECTIOUS
                 # round when the current state ends
-                node['state-end'] = self.infection_duration - 1
+                node['state-end'] = self.infection_duration
                 self.infectious.add(label)
             else:
                 node['state'] = State.SUSCEPTIBLE
 
-        self.curr_round = 0
-        self.update()
+        self._save_round_states()
+
+    @property
+    def round_count(self):
+        """
+        How many rounds the infection lasted.
+        This is always greater or equal to one (even if zeroes is empty).
+        """
+        return len(self.rounds)
 
     def run(self):
         """Spread infection over self.graph."""
@@ -51,26 +58,25 @@ class Evolution:
                 if node['state'] == State.SUSCEPTIBLE \
                         and label in infected:
                     node['state'] = State.INFECTIOUS
-                    node['state-end'] = self.curr_round + self.infection_duration
+                    node['state-end'] = self.round_count + self.infection_duration
                     self.infectious.add(label)
                 # infectious node becomes recovered
                 elif node['state'] == State.INFECTIOUS \
-                        and node['state-end'] == self.curr_round:
+                        and node['state-end'] == self.round_count:
                     node['state'] = State.RECOVERED
                     if self.recovery_duration:
-                        node['state-end'] = self.curr_round + self.recovery_duration
+                        node['state-end'] = self.round_count + self.recovery_duration
                     self.infectious.remove(label)
                 # recovered node becomes susceptible
                 elif node['state'] == State.RECOVERED \
-                        and node['state-end'] == self.curr_round \
+                        and node['state-end'] == self.round_count \
                         and self.recovery_duration is not None:
                     node['state'] = State.SUSCEPTIBLE
                     node['state-end'] = None
 
-            self.curr_round += 1
-            self.update()
+            self._save_round_states()
 
-    def update(self):
+    def _save_round_states(self):
         self.rounds.append({
             'infectious': [l for l in self.graph.nodes \
                     if self.graph.nodes[l]['state'] == State.INFECTIOUS],
