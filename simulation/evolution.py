@@ -8,17 +8,17 @@ class Evolution:
     def __init__(self, graph, zeroes, contagion_probability,
                  infection_duration=1, recovery_duration=None):
         self.graph = graph
-        self.zeroes = zeroes
         self.contagion_probability = contagion_probability
         self.infection_duration = infection_duration
         self.recovery_duration = recovery_duration
         self.rounds = []
         self.infectious = set()
+        self.nodes = {}
 
         # init node states
         for label in self.graph.nodes:
-            node = self.graph.nodes[label]
-            if label in self.zeroes:
+            node = self.nodes[label] = {}
+            if label in zeroes:
                 node['state'] = State.INFECTIOUS
                 # round when the current state ends
                 node['state-end'] = self.infection_duration
@@ -47,13 +47,12 @@ class Evolution:
             infected = set()
             for i in self.infectious:
                 for neigh in self.graph.neighbors(i):
-                    if self.graph.nodes[neigh]['state'] == State.SUSCEPTIBLE \
+                    if self.nodes[neigh]['state'] == State.SUSCEPTIBLE \
                             and random.random() < self.contagion_probability:
                         infected.add(neigh)
 
             # 2. node states are updated for the next round
-            for label in self.graph.nodes:
-                node = self.graph.nodes[label]
+            for label, node in self.nodes.items():
                 # susceptible node becomes infected
                 if node['state'] == State.SUSCEPTIBLE \
                         and label in infected:
@@ -78,14 +77,14 @@ class Evolution:
 
     def _save_round_states(self):
         self.rounds.append({
-            'infectious': [l for l in self.graph.nodes \
-                    if self.graph.nodes[l]['state'] == State.INFECTIOUS],
-            'recovered': [l for l in self.graph.nodes \
-                    if self.graph.nodes[l]['state'] == State.RECOVERED]
+            'infectious': [label for label, node in self.nodes.items() \
+                    if node['state'] == State.INFECTIOUS],
+            'recovered': [label for label, node in self.nodes.items() \
+                    if node['state'] == State.RECOVERED]
         })
 
     def __str__(self):
         return json.dumps({
-            'nodes': list(self.graph.nodes),
+            'nodes': list(self.nodes),
             'rounds': self.rounds
         })
