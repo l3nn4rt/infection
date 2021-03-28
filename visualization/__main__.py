@@ -43,23 +43,37 @@ def main():
             help="""Print node states at each round on the standard output; this
             option requires a color-capable terminal.""", action='store_true')
     # - from a file
-    parser.add_argument('-G', '--graph-file', metavar='GRAPH-FILE',
+    parser.add_argument('-g', '--graph-file', metavar='GRAPH-FILE',
             help="""File containing the graph adjacency list or the graph edge
-            list without data.""", type=argparse.FileType())
+            list without data. This option takes precedence over any graph path
+            or adjacency/edge list found in the EVOLUTION file.""",
+            type=argparse.FileType(), nargs='?')
     # parse sys.argv
     args = parser.parse_args()
 
+    evo = json.load(args.evolution_file)
+
+    # scan graph description sources in decreasing priority
+    if args.graph_file:
+        graph_descr = args.graph_file
+    elif 'graph' in evo and 'abspath' in evo['graph']:
+        graph_descr = nx.read_adjlist(evo['graph']['abspath'])
+    elif 'graph' in evo and 'adjlist' in evo['graph']:
+        graph_descr = evo['graph']['adjlist']
+    else:
+        raise FileNotFoundError('Graph description not found')
+
     # generate graph
     if args.edges:
-        g = nx.parse_edgelist(args.graph_file)
+        graph = nx.parse_edgelist(graph_descr)
     else:
-        g = nx.parse_adjlist(args.graph_file)
+        graph = nx.parse_adjlist(graph_descr)
 
     # numeric conversion
     if args.numeric:
         # store valid substitutions only
         subs = {}
-        for label in g.nodes:
+        for label in graph.nodes:
             try:
                 subs[label] = int(label)
             except ValueError as _:
@@ -67,16 +81,13 @@ def main():
                     # abort if any conversion fails
                     break
         else:
-            g = nx.relabel_nodes(g, subs)
-
-    evo = json.load(args.evolution_file)
-    nodes, rounds = evo['nodes'], evo['rounds']
+            graph = nx.relabel_nodes(graph, subs)
 
     if args.timeline:
-        print(Timeline(sorted(nodes), rounds))
+        print(Timeline(graph.nodes, evo['rounds']))
 
     if args.animate:
-        ani = Animation2D(g, rounds)
+        ani = Animation2D(graph, evo['rounds'])
         #ani.save_as('infection.gif')
 
 if __name__ == "__main__":
