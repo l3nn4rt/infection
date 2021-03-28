@@ -1,90 +1,78 @@
 import json
 import random
 
-from infection.node import State
-
 class Evolution:
 
     def __init__(self, graph, zeroes, contagion_probability,
                  infection_duration=1, recovery_duration=None):
-        self.graph = graph
-        self.contagion_probability = contagion_probability
-        self.infection_duration = infection_duration
-        self.recovery_duration = recovery_duration
-        self.rounds = []
-        self.infectious = set()
-        self.nodes = {}
-
+        self.__graph = graph
+        self.__contagion_probability = contagion_probability
+        self.__infection_duration = infection_duration
+        self.__recovery_duration = recovery_duration
+        self.__rounds = []
         # init node states
-        for label in self.graph.nodes:
-            node = self.nodes[label] = {}
-            if label in zeroes:
-                node['state'] = State.INFECTIOUS
-                # round when the current state ends
-                node['state-end'] = self.infection_duration
-                self.infectious.add(label)
-            else:
-                node['state'] = State.SUSCEPTIBLE
+        self.__susceptible = set(graph).difference(zeroes)
+        self.__infectious = set(zeroes)
+        self.__recovered = set()
+        # round when the current state ends
+        self.__state_end = dict.fromkeys(zeroes, infection_duration)
 
         self._save_round_states()
 
     @property
-    def round_count(self):
+    def rounds(self):
         """
-        How many rounds the infection lasted.
-        This is always greater or equal to one (even if zeroes is empty).
+        List of infection rounds. It contains the initial state only until
+        `Evolution.run()` is executed.
         """
-        return len(self.rounds)
+        return self.__rounds
 
     def run(self):
-        """Spread infection over self.graph."""
+        """Spread infection over self.__graph."""
         # - the infection spreading consists of a sequence of rounds;
         # - each round consists of two phases:
         #   1. infection
         #   2. update
-        while self.infectious:
+        while self.__infectious:
             # 1. infectious nodes try to infect susceptible neighbors
+            round_n = len(self.__rounds)
             infected = set()
-            for i in self.infectious:
-                for neigh in self.graph.neighbors(i):
-                    if self.nodes[neigh]['state'] == State.SUSCEPTIBLE \
-                            and random.random() < self.contagion_probability:
+            for i in self.__infectious:
+                for neigh in self.__graph.neighbors(i):
+                    if neigh in self.__susceptible \
+                            and random.random() < self.__contagion_probability:
                         infected.add(neigh)
 
             # 2. node states are updated for the next round
-            for label, node in self.nodes.items():
+            for node in self.__graph.nodes:
                 # susceptible node becomes infected
-                if node['state'] == State.SUSCEPTIBLE \
-                        and label in infected:
-                    node['state'] = State.INFECTIOUS
-                    node['state-end'] = self.round_count + self.infection_duration
-                    self.infectious.add(label)
+                if node in self.__susceptible and node in infected:
+                    self.__susceptible.remove(node)
+                    self.__infectious.add(node)
+                    self.__state_end[node] = round_n + self.__infection_duration
                 # infectious node becomes recovered
-                elif node['state'] == State.INFECTIOUS \
-                        and node['state-end'] == self.round_count:
-                    node['state'] = State.RECOVERED
-                    if self.recovery_duration:
-                        node['state-end'] = self.round_count + self.recovery_duration
-                    self.infectious.remove(label)
+                elif node in self.__infectious \
+                        and self.__state_end[node] == round_n:
+                    self.__infectious.remove(node)
+                    self.__recovered.add(node)
+                    if self.__recovery_duration:
+                        self.__state_end[node] = round_n + self.__recovery_duration
                 # recovered node becomes susceptible
-                elif node['state'] == State.RECOVERED \
-                        and node['state-end'] == self.round_count \
-                        and self.recovery_duration is not None:
-                    node['state'] = State.SUSCEPTIBLE
-                    node['state-end'] = None
+                elif node in self.__recovered and self.__recovery_duration \
+                        and self.__state_end[node] == round_n:
+                    self.__susceptible.add(node)
+                    self.__state_end.pop(node)
 
             self._save_round_states()
 
     def _save_round_states(self):
-        self.rounds.append({
-            'infectious': [label for label, node in self.nodes.items() \
-                    if node['state'] == State.INFECTIOUS],
-            'recovered': [label for label, node in self.nodes.items() \
-                    if node['state'] == State.RECOVERED]
+        self.__rounds.append({
+            'infectious': [*self.__infectious],
+            'recovered': [*self.__recovered]
         })
 
     def __str__(self):
         return json.dumps({
-            'nodes': list(self.nodes),
-            'rounds': self.rounds
+            'nodes': [*self.__graph.nodes],
+            'rounds': self.__rounds
         })
