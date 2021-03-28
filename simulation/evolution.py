@@ -1,4 +1,3 @@
-import json
 import random
 
 class Evolution:
@@ -69,10 +68,4 @@ class Evolution:
         self.__rounds.append({
             'infectious': [*self.__infectious],
             'recovered': [*self.__recovered]
-        })
-
-    def __str__(self):
-        return json.dumps({
-            'nodes': [*self.__graph.nodes],
-            'rounds': self.__rounds
         })

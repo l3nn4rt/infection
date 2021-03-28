@@ -5,6 +5,8 @@ Simulate epidemic spreading in a SI[R][S]-model based network.
 """
 
 import argparse
+import json
+import os
 
 import networkx as nx
 
@@ -100,7 +102,17 @@ def main():
     evolution = Evolution(g, zeroes, args.probability,
                           args.infection, args.recovery)
     evolution.run()
-    print(evolution)
+
+    # save graph as adjlist or file path
+    if args.graph_file.name == '<stdin>':
+        graph_repr = {'adjlist': [*nx.generate_adjlist(g)]}
+    else:
+        graph_repr = {'abspath': os.path.abspath(args.graph_file.name)}
+
+    print(json.dumps({
+        'graph': graph_repr,
+        'rounds': evolution.rounds,
+    }))
 
 if __name__ == "__main__":
     main()
