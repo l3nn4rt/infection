@@ -103,16 +103,15 @@ def main():
                           args.infection, args.recovery)
     evolution.run()
 
-    # save graph as adjlist or file path
+    evo_data = {}
+    # add graph as adjlist or file path
     if args.graph_file.name == '<stdin>':
-        graph_repr = {'adjlist': [*nx.generate_adjlist(g)]}
+        evo_data['graph-adjlist'] = [*nx.generate_adjlist(g)]
     else:
-        graph_repr = {'abspath': os.path.abspath(args.graph_file.name)}
-
-    print(json.dumps({
-        'graph': graph_repr,
-        'rounds': evolution.rounds,
-    }))
+        evo_data['graph-filename'] = os.path.abspath(args.graph_file.name)
+    # add infection evolution rounds
+    evo_data['rounds'] = evolution.rounds
+    print(json.dumps(evo_data))
 
 if __name__ == "__main__":
     main()

@@ -31,8 +31,8 @@ class Animation2D:
 
     def __update__(self, num):
         # node colors
-        infectious = self.rounds[num]['infectious']
-        recovered = self.rounds[num]['recovered']
+        infectious = self.rounds[num]['i']
+        recovered = self.rounds[num]['r']
         colors = []
         for node in self.graph:
             if node in infectious:

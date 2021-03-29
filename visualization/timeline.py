@@ -11,9 +11,9 @@ class Timeline:
         for round_idx, round_dict in enumerate(rounds):
             line_lst = ['[%*d] ' % (prefix_width, round_idx)]
             for label in nodes:
-                if label in round_dict['infectious']:
+                if label in round_dict['i']:
                     line_lst.append(State.INFECTIOUS.value['cli_str'])
-                elif label in round_dict['recovered']:
+                elif label in round_dict['r']:
                     line_lst.append(State.RECOVERED.value['cli_str'])
                 else:
                     line_lst.append(State.SUSCEPTIBLE.value['cli_str'])

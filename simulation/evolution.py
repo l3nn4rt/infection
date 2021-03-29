@@ -66,6 +66,6 @@ class Evolution:
 
     def _save_round_states(self):
         self.__rounds.append({
-            'infectious': [*self.__infectious],
-            'recovered': [*self.__recovered]
+            'i': [*self.__infectious],
+            'r': [*self.__recovered]
         })

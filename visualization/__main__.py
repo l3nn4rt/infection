@@ -56,13 +56,13 @@ def main():
     # scan graph description sources in decreasing priority
     if args.graph_file:
         graph_descr = args.graph_file
-    elif 'graph' in evo and 'abspath' in evo['graph']:
-        with open(evo['graph']['abspath']) as f:
+    elif 'graph-filename' in evo:
+        with open(evo['graph-filename']) as f:
             graph_descr = f.readlines()
-    elif 'graph' in evo and 'adjlist' in evo['graph']:
-        graph_descr = evo['graph']['adjlist']
+    elif 'graph-adjlist' in evo:
+        graph_descr = evo['graph-adjlist']
     else:
-        raise FileNotFoundError('Graph description not found')
+        raise FileNotFoundError('Graph description not found (use -g/--graph)')
 
     # generate graph
     if args.edges:
