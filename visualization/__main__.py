@@ -57,7 +57,8 @@ def main():
     if args.graph_file:
         graph_descr = args.graph_file
     elif 'graph' in evo and 'abspath' in evo['graph']:
-        graph_descr = nx.read_adjlist(evo['graph']['abspath'])
+        with open(evo['graph']['abspath']) as f:
+            graph_descr = f.readlines()
     elif 'graph' in evo and 'adjlist' in evo['graph']:
         graph_descr = evo['graph']['adjlist']
     else:
