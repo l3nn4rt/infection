@@ -3,8 +3,9 @@ import matplotlib.animation as ani
 import networkx as nx
 
 from infection.node import State
+from infection.visualization.layout import Layout
 
-plot_settings = {
+_plot_settings = {
         # NODE SPECS
         #'with_labels': True,        # labels
         'node_shape':   'o',        # one of ‘so^>v<dph8'
@@ -18,10 +19,11 @@ plot_settings = {
 
 class Animation2D:
 
-    def __init__(self, graph, rounds):
+    def __init__(self, graph: nx.Graph, rounds: list,
+                 layout: Layout=Layout.SPRING):
         self.graph = graph
         self.rounds = rounds
-        self.layout = nx.spring_layout(self.graph)
+        self.layout = layout(self.graph)
 
         self.fig, self.ax = plt.subplots(figsize=(12,8))
         self.animation = ani.FuncAnimation(self.fig, self.__update__, \
@@ -46,7 +48,7 @@ class Animation2D:
         # plot
         self.ax.clear()
         nx.draw(self.graph, ax=self.ax, pos=self.layout, node_color=colors,
-                **plot_settings)
+                **_plot_settings)
 
         self.ax.set_title("round %d" % num)
 

@@ -10,6 +10,7 @@ import json
 import networkx as nx
 
 from infection.visualization.animation import Animation2D
+from infection.visualization.layout import Layout
 from infection.visualization.timeline import Timeline
 
 
@@ -29,6 +30,12 @@ def main():
             help="""Treat graph file as edge list. This option allows to ignore
             edge datas, but requires the edges to be written one per line.""",
             action='store_true')
+    # plot layout
+    parser.add_argument('-l', '--layout', metavar='LAYOUT',
+            help="""Position nodes using LAYOUT layout. Available layouts are:
+            """ + str([*Layout.__members__])[1:-1] + """. If LAYOUT is missing,
+            default is 'SPRING'. Without '-a/--animation', this option has no
+            effect.""", type=str, choices=Layout.__members__, default='SPRING')
     # try to save nodes as integers
     parser.add_argument('-n', '--numeric', metavar='MODE',
             help="""Treat node labels as numbers when possible. If MODE is
@@ -88,7 +95,8 @@ def main():
         print(Timeline(graph.nodes, evo['rounds']))
 
     if args.animate:
-        ani = Animation2D(graph, evo['rounds'])
+        layout = Layout[args.layout].value['func']
+        ani = Animation2D(graph, evo['rounds'], layout)
         #ani.save_as('infection.gif')
 
 if __name__ == "__main__":
