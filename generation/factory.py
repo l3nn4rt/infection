@@ -38,6 +38,20 @@ def _build_torus(m: int, n: int):
     return g
 
 
+def _build_torus_erdos_renyi(m: int, n: int, p: float):
+    return nx.compose(
+            _build_torus(m, n),
+            _build_erdos_renyi(m*n, p))
+
+
+def _build_torus_matching(m: int, n: int):
+    if (n * m) % 2 == 1:
+        raise ValueError('odd number of nodes')
+    return nx.compose(
+            _build_torus(m, n),
+            _build_matching(m*n))
+
+
 class Factory:
 
     class Template(enum.Enum):
@@ -130,6 +144,45 @@ class Factory:
                 }
             },
             'builder': _build_torus
+        }
+
+        TORUS_U_ERDOS_RENYI = {
+            'help': "Union of a torus graph and an Erdos-Renyi graph.",
+            'vars': {
+                'm': {
+                    'help': 'first dimension (non-negative integer)',
+                    'type': int,
+                    'test': lambda n: n >= 0
+                },
+                'n': {
+                    'help': 'second dimension (non-negative integer)',
+                    'type': int,
+                    'test': lambda n: n >= 0
+                },
+                'p': {
+                    'help': 'edges probability (float in [0,1])',
+                    'type': float,
+                    'test': lambda p: 0 <= p <= 1
+                }
+            },
+            'builder': _build_torus_erdos_renyi
+        }
+
+        TORUS_U_MATCHING = {
+            'help': "Union of a torus graph and a matching graph.",
+            'vars': {
+                'm': {
+                    'help': 'first dimension (non-negative integer)',
+                    'type': int,
+                    'test': lambda n: n >= 0
+                },
+                'n': {
+                    'help': 'second dimension (non-negative integer)',
+                    'type': int,
+                    'test': lambda n: n >= 0
+                }
+            },
+            'builder': _build_torus_matching
         }
 
 
