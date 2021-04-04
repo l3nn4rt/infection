@@ -26,22 +26,10 @@ def _build_cycle_erdos_renyi(n: int, p: float):
             nx.erdos_renyi_graph(n, p))
 
 
-def _build_cycle_perfect_matching(n: int):
-    g = nx.cycle_graph(n)
-    # a valid matching is the diameters list
-    matching = [(i, (i+n//2)%n) for i in range(n//2)]
-    edge_indexes = list(range(len(matching)))
-    # for n times, try to swap two random edges' ends
-    for _ in range(n):
-        i, j = random.sample(edge_indexes, 2)
-        (a, b), (c, d) = matching[i], matching[j]
-        # skip if (a,d) or (b,c) already exist
-        if not a in g[d] and not b in g[c]:
-            matching[i], matching[j] = (a, d), (c, b)
-    g.add_edges_from(matching)
-    #assert all(d == 3 for d in dict(g.degree).values())
-
-    return g
+def _build_cycle_matching(n: int):
+    return nx.compose(
+            nx.cycle_graph(n),
+            _build_matching(n))
 
 
 def _build_torus(m: int, n: int):
@@ -114,8 +102,8 @@ class Factory:
             'builder': _build_cycle_erdos_renyi
         }
 
-        CYCLE_U_PERFECT_MATCHING = {
-            'help': "Union of a cycle graph and a perfect matching graph.",
+        CYCLE_U_MATCHING = {
+            'help': "Union of a cycle graph and a matching graph.",
             'vars': {
                 'n': {
                     'help': 'number of nodes (even, non-negative integer)',
@@ -123,7 +111,7 @@ class Factory:
                     'test': lambda n: n >= 0 and n % 2 == 0
                 }
             },
-            'builder': _build_cycle_perfect_matching
+            'builder': _build_cycle_matching
         }
 
         TORUS = {
