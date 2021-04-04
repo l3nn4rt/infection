@@ -13,6 +13,13 @@ def _build_erdos_renyi(n: int, p: float):
     return nx.erdos_renyi_graph(n, p)
 
 
+def _build_matching(n: int):
+    nodes = list(range(n))
+    random.shuffle(nodes)
+    edges = zip(nodes[:n//2], nodes[n//2:])
+    return nx.from_edgelist(edges)
+
+
 def _build_cycle_erdos_renyi(n: int, p: float):
     return nx.compose(
             nx.cycle_graph(n),
@@ -76,6 +83,18 @@ class Factory:
                 }
             },
             'builder': _build_erdos_renyi
+        }
+
+        MATCHING = {
+            'help': "Graph whose nodes have exactly one neighbor each.",
+            'vars': {
+                'n': {
+                    'help': 'number of nodes (even, non-negative integer)',
+                    'type': int,
+                    'test': lambda n: n >= 0 and n % 2 == 0
+                }
+            },
+            'builder': _build_matching
         }
 
         CYCLE_U_ERDOS_RENYI = {
