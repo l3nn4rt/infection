@@ -108,7 +108,7 @@ def main():
     if args.graph_file.name == '<stdin>':
         evo_data['graph-adjlist'] = [*nx.generate_adjlist(g)]
     else:
-        evo_data['graph-filename'] = os.path.abspath(args.graph_file.name)
+        evo_data['graph-filename'] = os.path.relpath(args.graph_file.name)
     # add infection evolution rounds
     evo_data['rounds'] = evolution.rounds
     print(json.dumps(evo_data))
