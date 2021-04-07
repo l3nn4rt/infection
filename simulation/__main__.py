@@ -101,7 +101,6 @@ def main():
 
     evolution = Evolution(g, zeroes, args.probability,
                           args.infection, args.recovery)
-    evolution.run()
 
     evo_data = {}
     # add graph as adjlist or file path
