@@ -23,7 +23,7 @@ class Animation2D:
                  layout: Layout=Layout.SPRING):
         self.graph = graph
         self.rounds = rounds
-        self.layout = layout(self.graph)
+        self.layout = layout.value['func'](self.graph)
 
         self.fig, self.ax = plt.subplots(figsize=(12,8))
         self.animation = ani.FuncAnimation(self.fig, self.__update__, \
