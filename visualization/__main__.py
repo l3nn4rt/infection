@@ -9,9 +9,7 @@ import json
 
 import networkx as nx
 
-from infection.visualization.animation import Animation2D
-from infection.visualization.layout import Layout
-from infection.visualization.timeline import Timeline
+from . import *
 
 
 def main():
@@ -95,9 +93,7 @@ def main():
         print(Timeline(graph.nodes, evo['rounds']))
 
     if args.animate:
-        layout = Layout[args.layout].value['func']
-        ani = Animation2D(graph, evo['rounds'], layout)
-        #ani.save_as('infection.gif')
+        Animation2D(graph, evo['rounds'], Layout[args.layout])
 
 if __name__ == "__main__":
     main()

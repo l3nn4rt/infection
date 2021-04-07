@@ -8,7 +8,7 @@ import argparse
 
 import networkx as nx
 
-from infection.generation.factory import Factory
+from . import *
 
 
 def main():

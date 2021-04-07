@@ -1,6 +1,6 @@
 import math
 
-from infection.node import State
+from ..node import State
 
 
 class Timeline:

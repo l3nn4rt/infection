@@ -10,7 +10,7 @@ import os
 
 import networkx as nx
 
-from infection.simulation.evolution import Evolution
+from . import *
 
 
 def main():

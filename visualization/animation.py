@@ -2,8 +2,9 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 import networkx as nx
 
-from infection.node import State
-from infection.visualization.layout import Layout
+from ..node import State
+from .layout import Layout
+
 
 _plot_settings = {
         # NODE SPECS
