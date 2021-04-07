@@ -1,6 +1,5 @@
 import enum
 import random
-import typing
 
 import networkx as nx
 
@@ -186,7 +185,7 @@ class Factory:
         }
 
 
-    def build(self, template: Template, **kwargs)-> typing.Optional[nx.Graph]:
+    def build(self, template: Template, **kwargs) -> nx.Graph:
         """Build graph from template."""
         templ_vars = template.value['vars']
 
