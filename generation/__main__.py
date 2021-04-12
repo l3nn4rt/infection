@@ -31,10 +31,15 @@ def main():
             t_parser.add_argument('-' + tv, help=value['help'],
                     type=value['type'], required=True)
 
+    # parse sys.argv
+    args = parser.parse_args()
+
+    # extract template and its parameters
+    templ = args.template
+    templ_kwargs = {v: vars(args)[v] for v in templ.value['vars']}
+
     # create graph
-    args = parser.parse_args().__dict__
-    templ = args.pop('template')
-    g = Factory().build(templ, **args)
+    g = Factory().build(templ, **templ_kwargs)
 
     for line in nx.generate_adjlist(g):
         print(line)
