@@ -11,6 +11,7 @@ import os
 import networkx as nx
 
 from . import *
+from .. import util
 
 
 def main():
@@ -32,14 +33,14 @@ def main():
             becomes recovered after one round in the infectious state).""",
             type=int, default=1)
     # try to save nodes as integers
-    parser.add_argument('-n', '--numeric', metavar='MODE',
-            help="""Treat node labels as numbers when possible. If MODE is
-            'auto', perform conversion if all nodes can be treated as numbers,
-            otherwise all labels will be treated as strings ("all-or-none").
-            If MODE is 'always', perform conversion on any label for which it is
-            possible, and treat as strings all the others. If MODE is missing,
-            default is 'auto'.""", choices=['always', 'auto'], nargs='?',
-            const='auto')
+    parser.add_argument('-n', '--numeric', metavar='WHEN',
+            help="""Specify when to treat node labels as numbers. If WHEN is
+            'always', perform conversion on any label for which it is possible,
+            and treat as strings all the others. If WHEN is 'never', treat all
+            node labels as strings. By default, perform conversion if all nodes
+            can be treated as numbers, otherwise all labels will be treated as
+            strings, in a "all-or-none" policy.""", choices=['always', 'never'],
+            default='auto')
     # infection probability
     parser.add_argument('-p', '--probability', metavar='VALUE',
             help="""Probability a node has to infect nearby nodes on each round.
@@ -84,20 +85,11 @@ def main():
         zeroes = set(l for l in lines if l in g)
 
     # numeric conversion
-    if args.numeric:
-        # store valid substitutions only
-        subs = {}
-        for label in g.nodes:
-            try:
-                subs[label] = int(label)
-            except ValueError as _:
-                if args.numeric == 'auto':
-                    # abort if any conversion fails
-                    break
-        else:
-            g = nx.relabel_nodes(g, subs)
-            zeroes.update({subs[label] for label in subs if label in zeroes})
-            zeroes.difference_update(subs)
+    if args.numeric != 'never':
+        subs = util.map_to_int(g.nodes, args.numeric == 'always')
+        g = nx.relabel_nodes(g, subs)
+        zeroes.update({subs[label] for label in subs if label in zeroes})
+        zeroes.difference_update(subs)
 
     evolution = Evolution(g, zeroes, args.probability,
                           args.infection, args.recovery)

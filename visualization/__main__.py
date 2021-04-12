@@ -10,6 +10,7 @@ import json
 import networkx as nx
 
 from . import *
+from .. import util
 
 
 def main():
@@ -35,14 +36,14 @@ def main():
             default is 'SPRING'. Without '-a/--animation', this option has no
             effect.""", type=str, choices=Layout.__members__, default='SPRING')
     # try to save nodes as integers
-    parser.add_argument('-n', '--numeric', metavar='MODE',
-            help="""Treat node labels as numbers when possible. If MODE is
-            'auto', perform conversion if all nodes can be treated as numbers,
-            otherwise all labels will be treated as strings ("all-or-none").
-            If MODE is 'always', perform conversion on any label for which it is
-            possible, and treat as strings all the others. If MODE is missing,
-            default is 'auto'.""", choices=['always', 'auto'], nargs='?',
-            const='auto')
+    parser.add_argument('-n', '--numeric', metavar='WHEN',
+            help="""Specify when to treat node labels as numbers. If WHEN is
+            'always', perform conversion on any label for which it is possible,
+            and treat as strings all the others. If WHEN is 'never', treat all
+            node labels as strings. By default, perform conversion if all nodes
+            can be treated as numbers, otherwise all labels will be treated as
+            strings, in a "all-or-none" policy.""", choices=['always', 'never'],
+            default='auto')
     # print timeline (default: false)
     parser.add_argument('-t', '--timeline',
             help="""Print node states at each round on the standard output; this
@@ -76,18 +77,9 @@ def main():
         graph = nx.parse_adjlist(graph_descr)
 
     # numeric conversion
-    if args.numeric:
-        # store valid substitutions only
-        subs = {}
-        for label in graph.nodes:
-            try:
-                subs[label] = int(label)
-            except ValueError as _:
-                if args.numeric == 'auto':
-                    # abort if any conversion fails
-                    break
-        else:
-            graph = nx.relabel_nodes(graph, subs)
+    if args.numeric != 'never':
+        subs = util.map_to_int(graph.nodes, args.numeric == 'always')
+        graph = nx.relabel_nodes(graph, subs)
 
     if args.timeline:
         print(Timeline(graph.nodes, evo['rounds']))
