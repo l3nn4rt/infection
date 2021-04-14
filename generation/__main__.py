@@ -28,7 +28,7 @@ def main():
         # require specific arguments for each template
         for tv in templ_vars:
             value = templ_vars[tv]
-            t_parser.add_argument('-' + tv, help=value['help'],
+            t_parser.add_argument('-' + tv[0], '--' + tv, help=value['help'],
                     type=value['type'], required=True)
 
     # parse sys.argv

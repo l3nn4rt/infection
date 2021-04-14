@@ -8,47 +8,47 @@ def _build_cycle(n: int):
     return nx.cycle_graph(n)
 
 
-def _build_erdos_renyi(n: int, p: float):
-    return nx.erdos_renyi_graph(n, p)
+def _build_erdos_renyi(nodes: int, probability: float):
+    return nx.erdos_renyi_graph(nodes, probability)
 
 
-def _build_matching(n: int):
-    nodes = list(range(n))
-    random.shuffle(nodes)
-    edges = zip(nodes[:n//2], nodes[n//2:])
+def _build_matching(nodes: int):
+    node_ls = list(range(nodes))
+    random.shuffle(node_ls)
+    edges = zip(node_ls[:nodes//2], node_ls[nodes//2:])
     return nx.from_edgelist(edges)
 
 
-def _build_cycle_erdos_renyi(n: int, p: float):
+def _build_cycle_erdos_renyi(nodes: int, probability: float):
     return nx.compose(
-            nx.cycle_graph(n),
-            nx.erdos_renyi_graph(n, p))
+            nx.cycle_graph(nodes),
+            nx.erdos_renyi_graph(nodes, probability))
 
 
-def _build_cycle_matching(n: int):
+def _build_cycle_matching(nodes: int):
     return nx.compose(
-            nx.cycle_graph(n),
-            _build_matching(n))
+            nx.cycle_graph(nodes),
+            _build_matching(nodes))
 
 
-def _build_torus(m: int, n: int):
-    g = nx.grid_2d_graph(m, n, True)
+def _build_torus(columns: int, rows: int):
+    g = nx.grid_2d_graph(columns, rows, True)
     g = nx.relabel_nodes(g, {n:i for i,n in enumerate(g.nodes)})
     return g
 
 
-def _build_torus_erdos_renyi(m: int, n: int, p: float):
+def _build_torus_erdos_renyi(columns: int, rows: int, probability: float):
     return nx.compose(
-            _build_torus(m, n),
-            _build_erdos_renyi(m*n, p))
+            _build_torus(columns, rows),
+            _build_erdos_renyi(columns*rows, probability))
 
 
-def _build_torus_matching(m: int, n: int):
-    if (n * m) % 2 == 1:
+def _build_torus_matching(columns: int, rows: int):
+    if (columns*rows) % 2 == 1:
         raise ValueError('odd number of nodes')
     return nx.compose(
-            _build_torus(m, n),
-            _build_matching(m*n))
+            _build_torus(columns, rows),
+            _build_matching(columns*rows))
 
 
 class Factory:
@@ -59,7 +59,7 @@ class Factory:
             'help': "Graph whose nodes are connected in sequence; last node " \
                     "is connected to the first.",
             'vars': {
-                'n': {
+                'nodes': {
                     'help': 'number of nodes (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
@@ -72,12 +72,12 @@ class Factory:
             'help': "Graph whose each pair of nodes is an edge with " \
                     "a given probability",
             'vars': {
-                'n': {
+                'nodes': {
                     'help': 'number of nodes (non-negative integer)',
                     'type': int,
-                    'test': lambda n:  n >= 0
+                    'test': lambda n: n >= 0
                 },
-                'p': {
+                'probability': {
                     'help': 'edges probability (float in [0,1])',
                     'type': float,
                     'test': lambda p: 0 <= p <= 1
@@ -89,7 +89,7 @@ class Factory:
         MATCHING = {
             'help': "Graph whose nodes have exactly one neighbor each.",
             'vars': {
-                'n': {
+                'nodes': {
                     'help': 'number of nodes (even, non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0 and n % 2 == 0
@@ -101,12 +101,12 @@ class Factory:
         CYCLE_U_ERDOS_RENYI = {
             'help': "Union of a cycle graph and an Erdos-Renyi graph.",
             'vars': {
-                'n': {
+                'nodes': {
                     'help': 'number of nodes (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
                 },
-                'p': {
+                'probability': {
                     'help': 'edges probability (float in [0,1])',
                     'type': float,
                     'test': lambda p: 0 <= p <= 1
@@ -118,7 +118,7 @@ class Factory:
         CYCLE_U_MATCHING = {
             'help': "Union of a cycle graph and a matching graph.",
             'vars': {
-                'n': {
+                'nodes': {
                     'help': 'number of nodes (even, non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0 and n % 2 == 0
@@ -131,12 +131,12 @@ class Factory:
             'help': "Graph whose nodes are arranged in a 2-dimensional lattice, " \
                     "wrapped along both axes; each node has four neighbors",
             'vars': {
-                'm': {
+                'columns': {
                     'help': 'first dimension (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
                 },
-                'n': {
+                'rows': {
                     'help': 'second dimension (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
@@ -148,17 +148,17 @@ class Factory:
         TORUS_U_ERDOS_RENYI = {
             'help': "Union of a torus graph and an Erdos-Renyi graph.",
             'vars': {
-                'm': {
+                'columns': {
                     'help': 'first dimension (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
                 },
-                'n': {
+                'rows': {
                     'help': 'second dimension (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
                 },
-                'p': {
+                'probability': {
                     'help': 'edges probability (float in [0,1])',
                     'type': float,
                     'test': lambda p: 0 <= p <= 1
@@ -170,12 +170,12 @@ class Factory:
         TORUS_U_MATCHING = {
             'help': "Union of a torus graph and a matching graph.",
             'vars': {
-                'm': {
+                'columns': {
                     'help': 'first dimension (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
                 },
-                'n': {
+                'rows': {
                     'help': 'second dimension (non-negative integer)',
                     'type': int,
                     'test': lambda n: n >= 0
