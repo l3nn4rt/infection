@@ -14,13 +14,13 @@ from . import *
 def main():
     parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
     subparsers = parser.add_subparsers(metavar= 'TEMPLATE',
-            help="""One from the available graph templates listed below.
-            This must be specified exaclty as shown by the help command,
-            (all capital letters and underscores).""", required=True)
+            help="""Generate graph using TEMPLATE template. Available templates are:
+            """ + str([*Factory.Template.__members__])[1:-1], required=True)
 
     # create a parser for each template
     for templ in Factory.Template:
-        t_parser = subparsers.add_parser(templ.name, help=templ.value['help'])
+        t_parser = subparsers.add_parser(templ.name,
+                description=templ.value['help'])
         # store selected template
         t_parser.set_defaults(template=templ)
 
