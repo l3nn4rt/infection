@@ -4,8 +4,8 @@ import random
 import networkx as nx
 
 
-def _build_cycle(n: int):
-    return nx.cycle_graph(n)
+def _build_cycle(nodes: int):
+    return nx.cycle_graph(nodes)
 
 
 def _build_erdos_renyi(nodes: int, probability: float):
