@@ -22,9 +22,9 @@ def main():
     parser.add_argument('--save', help="""Save graph adjacency list in graph
             directory and return graph UID (file hash). See also '--graph-dir'
             for more info.""", action='store_true')
-    subparsers = parser.add_subparsers(metavar= 'TEMPLATE',
-            help="""Generate graph using TEMPLATE template. Available templates are:
-            """ + str([*Factory.Template.__members__])[1:-1], required=True)
+    subparsers = parser.add_subparsers(metavar= 'TEMPLATE', help="""Generate
+            graph using TEMPLATE template. Available templates are: """ +
+            str([*Factory.Template.__members__])[1:-1], required=True)
 
     # create a parser for each template
     for templ in Factory.Template:
