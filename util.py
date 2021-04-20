@@ -1,15 +1,24 @@
 import os
 
-def mkdir_p(path):
-    """Emulate native `mkdir -p`."""
-    acc = ''
+def mkdir_p(path: str):
+    """
+    Emulate native `mkdir -p`.
+
+    Parameters:
+        * path (str): directory to create
+
+    Returns:
+        str: absolute path of directory
+    """
+    path = os.path.realpath(path)
+    acc = path[0]
     for d in path.split(os.sep):
         acc = os.path.join(acc, d)
         try:
             os.mkdir(acc)
-        except OSError as e:
-            # dir exists
+        except FileExistsError: # dir exists
             pass
+    return path
 
 def map_to_int(input_list: list, forced:bool=False) -> dict[object, int]:
     """
