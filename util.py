@@ -1,4 +1,5 @@
 import os
+import sys
 
 def mkdir_p(path: str):
     """
@@ -48,3 +49,15 @@ def map_to_int(input_list: list, forced:bool=False) -> dict[object, int]:
             if not forced:
                 return {}
     return map
+
+def die(package: str, exception: Exception):
+    """
+    Gracefully print exception error and die.
+
+    Parameters:
+        * package (str): package invoking this function
+        * exception (Exception): unhandled exception to print
+    """
+    msg = "%s: error: %s" % (package, exception)
+    print(msg, file=sys.stderr)
+    sys.exit(1)
