@@ -16,14 +16,18 @@ from .. import util
 
 def main():
     parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
+    # directory graphs are saved in
     parser.add_argument('--graph-dir', metavar='PATH', help="""Graph directory
             path; this is created when needed. By default, use 'graphs' in the
             working directory).""", default='graphs', type=str)
+    # save graph instead of writing to standard output
     parser.add_argument('--save', help="""Save graph adjacency list in graph
             directory and return graph UID (file hash). See also '--graph-dir'
             for more info.""", action='store_true')
+    # human-friendly output for --save
     parser.add_argument('-v', '--verbose', help="""With '--save', print graph
             directory and UID in a fancy way.""", action='store_true')
+    # templates are like sub-commands: each one needs its parameters
     subparsers = parser.add_subparsers(metavar= 'TEMPLATE', help="""Generate
             graph using TEMPLATE template. Available templates are: """ +
             str([*Factory.Template.__members__])[1:-1], required=True)
