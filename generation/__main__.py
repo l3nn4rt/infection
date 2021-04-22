@@ -22,6 +22,8 @@ def main():
     parser.add_argument('--save', help="""Save graph adjacency list in graph
             directory and return graph UID (file hash). See also '--graph-dir'
             for more info.""", action='store_true')
+    parser.add_argument('-v', '--verbose', help="""With '--save', print graph
+            directory and UID in a fancy way.""", action='store_true')
     subparsers = parser.add_subparsers(metavar= 'TEMPLATE', help="""Generate
             graph using TEMPLATE template. Available templates are: """ +
             str([*Factory.Template.__members__])[1:-1], required=True)
@@ -59,13 +61,17 @@ def main():
         file_path = os.path.join(args.graph_dir, file_hash)
 
         try:
-            util.mkdir_p(args.graph_dir)
+            graph_dir = util.mkdir_p(args.graph_dir)
             with open(file_path, 'w') as f:
                 f.write(txt)
         except (NotADirectoryError, PermissionError) as e:
             util.die(__package__, e)
 
-        print('Graph UID:', file_hash)
+        if args.verbose:
+            print('Graph dir:', graph_dir)
+            print('Graph UID:', file_hash)
+        else:
+            print(file_hash)
     else:
         print(txt, end='')
 
