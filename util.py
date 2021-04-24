@@ -1,24 +1,43 @@
 import os
 import sys
 
-def mkdir_p(path: str):
+def make_dir_check_writable(path: str):
     """
-    Emulate native `mkdir -p`.
+    Create `path`, if needed, and check that leaf directory is writable.
+    Does *not* remove nor change permissions on existing files and directories.
+    Raises error if task can't be accomplished.
 
     Parameters:
         * path (str): directory to create
 
     Returns:
-        str: absolute path of directory
+        * str: absolute path of directory
+
+    Raises:
+        * NotADirectoryError: if path or any anchestor exists and is not a
+            directory
+        * PermissionError: if path or any anchestor can't be created because
+            of missing permission, or path is not writable
+
+    Error codes from: https://docs.python.org/3/library/errno.html
     """
     path = os.path.realpath(path)
+
+    # make sure path exists
     acc = path[0]
     for d in path.split(os.sep):
         acc = os.path.join(acc, d)
         try:
             os.mkdir(acc)
-        except FileExistsError: # dir exists
-            pass
+        except FileExistsError:
+            if not os.path.isdir(acc):
+                raise NotADirectoryError(20, "Not a directory: '%s'" % acc)
+            # dir exists
+
+    # check leaf is writable
+    if not os.access(path, os.W_OK | os.X_OK):
+        raise PermissionError(13, "Permission denied: '%s'" % path)
+
     return path
 
 def map_to_int(input_list: list, forced:bool=False) -> dict[object, int]:

@@ -65,10 +65,10 @@ def main():
         file_path = os.path.join(args.graph_dir, file_hash)
 
         try:
-            graph_dir = util.mkdir_p(args.graph_dir)
+            graph_dir = util.make_dir_check_writable(args.graph_dir)
             with open(file_path, 'w') as f:
                 f.write(txt)
-        except (NotADirectoryError, PermissionError) as e:
+        except OSError as e:
             util.die(__package__, e)
 
         if args.verbose:
