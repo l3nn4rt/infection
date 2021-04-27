@@ -24,11 +24,11 @@ def main():
             help="""Graph directory path; this is created when needed. By
             default, use 'graphs' in the working directory).""",
             type=str, default='graphs')
-    # directory simulations are saved in
-    parser.add_argument('--simulation-dir', metavar='PATH',
-            help="""Simulation directory path; this is created when needed. By
-            default, use 'simulations' in the working directory).""",
-            type=str, default='simulations')
+    # directory evolutions are saved in
+    parser.add_argument('--evolution-dir', metavar='PATH',
+            help="""Evolution directory path; this is created when needed. By
+            default, use 'evolutions' in the working directory).""",
+            type=str, default='evolutions')
     # input graph:
     graph_g = parser.add_mutually_exclusive_group(required=True)
     # - by UID
@@ -80,13 +80,13 @@ def main():
     zero_g.add_argument('-Z', '--zero-file', metavar='ZERO-FILE',
             help="""File containing the initially infectious nodes (one node per
             line; comments start with #).""", type=argparse.FileType())
-    # save simulation instead of writing to standard output
-    parser.add_argument('--save', help="""Save simulation in simulation
-            directory and return simulation UID (file hash). See also
-            '--simulation-dir' for more info.""", action='store_true')
+    # save evolution instead of writing to standard output
+    parser.add_argument('--save', help="""Save evolution in evolution
+            directory and return evolution UID (file hash). See also
+            '--evolution-dir' for more info.""", action='store_true')
     # human-friendly output for --save
     parser.add_argument('-v', '--verbose', help="""With '--save', print
-            simulation directory and UID in a fancy way.""",
+            evolution directory and UID in a fancy way.""",
             action='store_true')
     # parse sys.argv
     args = parser.parse_args()
@@ -154,25 +154,25 @@ def main():
     txt = json.dumps(evo_data)
 
     if args.save:
-        # simulation UID consists of:
+        # evolution UID consists of:
         # - a fixed graph UID prefix
         # - a random and (hopefully) unique string
-        simul_uid = "%s-%s" % (graph_uid[:8], uuid.uuid4().hex)
-        simul_name = "%s.json" % simul_uid
-        simul_path = os.path.join(args.simulation_dir, simul_name)
+        evo_uid = "%s-%s" % (graph_uid[:8], uuid.uuid4().hex)
+        evo_name = "%s.json" % evo_uid
+        evo_path = os.path.join(args.evolution_dir, evo_name)
 
         try:
-            simul_dir = util.make_dir_check_writable(args.simulation_dir)
-            with open(simul_path, 'w') as f:
+            evo_dir = util.make_dir_check_writable(args.evolution_dir)
+            with open(evo_path, 'w') as f:
                 f.write(txt)
         except OSError as e:
             util.die(__package__, e)
 
         if args.verbose:
-            print('Simulation dir:', simul_dir)
-            print('Simulation UID:', simul_uid)
+            print('Evolution dir:', evo_dir)
+            print('Evolution UID:', evo_uid)
         else:
-            print(simul_uid)
+            print(evo_uid)
     else:
         print(txt)
 
