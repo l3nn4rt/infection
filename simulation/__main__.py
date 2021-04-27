@@ -5,8 +5,11 @@ Simulate epidemic spreading in a SI[R][S]-model based network.
 """
 
 import argparse
+import errno
+import hashlib
 import json
 import os
+import uuid
 
 import networkx as nx
 
@@ -16,11 +19,28 @@ from .. import util
 
 def main():
     parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
-    # input graph file
-    parser.add_argument('graph_file', metavar='GRAPH-FILE',
+    # directory graphs are saved in
+    parser.add_argument('--graph-dir', metavar='PATH',
+            help="""Graph directory path; this is created when needed. By
+            default, use 'graphs' in the working directory).""",
+            type=str, default='graphs')
+    # directory simulations are saved in
+    parser.add_argument('--simulation-dir', metavar='PATH',
+            help="""Simulation directory path; this is created when needed. By
+            default, use 'simulations' in the working directory).""",
+            type=str, default='simulations')
+    # input graph:
+    graph_g = parser.add_mutually_exclusive_group(required=True)
+    # - by UID
+    graph_g.add_argument('-g', '--graph-uid', metavar='UID',
+            help="""Use graph wth given UID. Graph UID is used as file name and,
+            by default, is the file hash. See also option '--graph-dir' for more
+            info.""", type=str)
+    # - from file
+    graph_g.add_argument('-G', '--graph-file', metavar='FILE',
             help="""File containing the graph adjacency list or the graph edge
-            list without data. If missing or -, read standard input.""",
-            type=argparse.FileType(), nargs='?', default='-')
+            list without data. If FILE is -, read standard input.""",
+            type=argparse.FileType(), default=None)
     # flag to read graph file as edge list (default: false)
     parser.add_argument('-e', '--edges',
             help="""Treat graph file as edge list. This option allows to ignore
@@ -60,6 +80,14 @@ def main():
     zero_g.add_argument('-Z', '--zero-file', metavar='ZERO-FILE',
             help="""File containing the initially infectious nodes (one node per
             line; comments start with #).""", type=argparse.FileType())
+    # save simulation instead of writing to standard output
+    parser.add_argument('--save', help="""Save simulation in simulation
+            directory and return simulation UID (file hash). See also
+            '--simulation-dir' for more info.""", action='store_true')
+    # human-friendly output for --save
+    parser.add_argument('-v', '--verbose', help="""With '--save', print
+            simulation directory and UID in a fancy way.""",
+            action='store_true')
     # parse sys.argv
     args = parser.parse_args()
 
@@ -72,10 +100,36 @@ def main():
             "recovery: ROUNDS must be a positive integer"
 
     # generate graph
-    if args.edges:
-        g = nx.parse_edgelist(args.graph_file)
+    if args.graph_uid:
+        # graph UID can be file name prefix
+        candidates = [f for f in os.listdir(args.graph_dir)
+                if f.startswith(args.graph_uid)]
+        if not candidates:
+            util.die(__package__, FileNotFoundError(errno.ENOENT,
+                "No match for given UID: '%s'" % args.graph_uid))
+        elif len(candidates) > 1:
+            util.die(__package__, FileNotFoundError(errno.ENOKEY,
+                "Too many matches for given UID: '%s'" % args.graph_uid))
+        # unique match for the given UID
+        graph_path = os.path.join(args.graph_dir, candidates[0])
+        graph_uid = os.path.splitext(candidates[0])[0]
+        try:
+            with open(graph_path) as f:
+                graph_lines = f.readlines()
+        except OSError as e:
+            util.die(__package__, e)
     else:
-        g = nx.parse_adjlist(args.graph_file)
+        # graph file handled by argparse
+        graph_path = args.graph_file.name
+        graph_lines = args.graph_file.readlines()
+        # compute graph UID when read from stdin
+        graph_uid = hashlib.sha1(bytes(''.join(graph_lines),
+                encoding='utf-8')).hexdigest()
+
+    if args.edges:
+        g = nx.parse_edgelist(graph_lines)
+    else:
+        g = nx.parse_adjlist(graph_lines)
 
     # read infectious nodes
     if args.zero:
@@ -95,14 +149,32 @@ def main():
                           args.infection, args.recovery)
 
     evo_data = {}
-    # add graph as adjlist or file path
-    if args.graph_file.name == '<stdin>':
-        evo_data['graph-adjlist'] = [*nx.generate_adjlist(g)]
-    else:
-        evo_data['graph-filename'] = os.path.relpath(args.graph_file.name)
-    # add infection evolution rounds
+    evo_data['graph-uid'] = graph_uid
     evo_data['rounds'] = evolution.rounds
-    print(json.dumps(evo_data))
+    txt = json.dumps(evo_data)
+
+    if args.save:
+        # simulation UID consists of:
+        # - a fixed graph UID prefix
+        # - a random and (hopefully) unique string
+        simul_uid = "%s-%s" % (graph_uid[:8], uuid.uuid4().hex)
+        simul_name = "%s.json" % simul_uid
+        simul_path = os.path.join(args.simulation_dir, simul_name)
+
+        try:
+            simul_dir = util.make_dir_check_writable(args.simulation_dir)
+            with open(simul_path, 'w') as f:
+                f.write(txt)
+        except OSError as e:
+            util.die(__package__, e)
+
+        if args.verbose:
+            print('Simulation dir:', simul_dir)
+            print('Simulation UID:', simul_uid)
+        else:
+            print(simul_uid)
+    else:
+        print(txt)
 
 if __name__ == "__main__":
     main()
