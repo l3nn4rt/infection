@@ -82,8 +82,9 @@ def main():
             line; comments start with #).""", type=argparse.FileType())
     # save evolution instead of writing to standard output
     parser.add_argument('--save', help="""Save evolution in evolution
-            directory and return evolution UID (file hash). See also
-            '--evolution-dir' for more info.""", action='store_true')
+            directory and return evolution UID.
+            See also '--evolution-dir' for more info.""",
+            action='store_true')
     # human-friendly output for --save
     parser.add_argument('-v', '--verbose', help="""With '--save', print
             evolution directory and UID in a fancy way.""",
