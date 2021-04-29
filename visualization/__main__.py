@@ -15,20 +15,56 @@ from .. import util
 
 def main():
     parser = argparse.ArgumentParser(prog=__package__, description=__doc__)
-    # input graph file
-    parser.add_argument('evolution_file', metavar='EVOLUTION',
-            help="""File containing the infection evolution (JSON format).
-            If missing or -, read standard input.""",
-            type=argparse.FileType(), nargs='?', default='-')
     # plot animation (default: false)
     parser.add_argument('-a', '--animate',
             help="""Animate the contagion; this is very CPU-intensive and not
             suitable for large graphs.""", action='store_true')
     # flag to read graph file as edge list (default: false)
-    parser.add_argument('-e', '--edges',
+    parser.add_argument('--edges',
             help="""Treat graph file as edge list. This option allows to ignore
             edge datas, but requires the edges to be written one per line.""",
             action='store_true')
+    # directory evolutions are saved in
+    parser.add_argument('--evolution-dir', metavar='PATH',
+            help="""Evolution directory path; this is created when needed.
+            By default, use 'evolutions' in the working directory.""",
+            type=str, default='evolutions')
+    # input evolution:
+    evo_g = parser.add_mutually_exclusive_group(required=True)
+    # - by UID
+    evo_g.add_argument('-e', '--evolution-uid', metavar='UID',
+            help="""Use evolution file with given UID. UID is the name of an
+            evolution file, from the evolution directory, without extension.
+            Any UID prefix matching a single evolution file is also accepted.
+            See also option '--evolution-dir' for more info.""",
+            type=str)
+    # - from file
+    evo_g.add_argument('-E', '--evolution-file', metavar='FILE',
+            help="""Read evolution from FILE (absolute or relative path).
+            If FILE is -, read standard input.""",
+            type=argparse.FileType(), default=None)
+    # directory graphs are saved in
+    parser.add_argument('--graph-dir', metavar='PATH',
+            help="""Graph directory path; this is created when needed.
+            By default, use 'graphs' in the working directory.""",
+            type=str, default='graphs')
+    # input graph:
+    graph_g = parser.add_mutually_exclusive_group()
+    # - by UID
+    graph_g.add_argument('-g', '--graph-uid', metavar='UID',
+            help="""Use graph with given UID. UID is the name of a graph
+            adjacency/edge list, from the graph directory, without extension.
+            Any UID prefix matching a single graph file is also accepted.
+            This option takes precedence over any graph UID found in the
+            evolution file. See also option '--graph-dir' for more info.""",
+            type=str)
+    # - from file
+    graph_g.add_argument('-G', '--graph-file', metavar='FILE',
+            help="""File containing the graph adjacency list or the graph edge
+            list without data.
+            This option takes precedence over any graph UID found in the
+            evolution file.""",
+            type=argparse.FileType(), default=None)
     # plot layout
     parser.add_argument('-l', '--layout', metavar='LAYOUT',
             help="""Position nodes using LAYOUT layout. Available layouts are:
@@ -48,27 +84,49 @@ def main():
     parser.add_argument('-t', '--timeline',
             help="""Print node states at each round on the standard output; this
             option requires a color-capable terminal.""", action='store_true')
-    # - from a file
-    parser.add_argument('-g', '--graph-file', metavar='GRAPH-FILE',
-            help="""File containing the graph adjacency list or the graph edge
-            list without data. This option takes precedence over any graph path
-            or adjacency/edge list found in the EVOLUTION file.""",
-            type=argparse.FileType(), nargs='?')
     # parse sys.argv
     args = parser.parse_args()
 
-    evo = json.load(args.evolution_file)
+    # read evolution file
+    if args.evolution_uid:
+        try:
+            evo_path = util.uid_to_path(args.evolution_dir, args.evolution_uid)
+            with open(evo_path) as f:
+                evo = json.load(f)
+        except OSError as e:
+            util.die(__package__, e)
+    else:
+        evo = json.load(args.evolution_file)
 
     # scan graph description sources in decreasing priority
+    # - graph file handled by argparse
     if args.graph_file:
         graph_descr = args.graph_file
+    # - graph by uid on command line
+    elif args.graph_uid:
+        try:
+            graph_path = util.uid_to_path(args.graph_dir, args.graph_uid)
+            with open(graph_path) as f:
+                graph_descr = f.readlines()
+        except OSError as e:
+            util.die(__package__, e)
+    # - graph by uid in evolution file
+    elif 'graph-uid' in evo:
+        try:
+            graph_path = util.uid_to_path(args.graph_dir, evo['graph-uid'])
+            with open(graph_path) as f:
+                graph_descr = f.readlines()
+        except OSError as e:
+            util.die(__package__, e)
+    # - legacy options
     elif 'graph-filename' in evo:
         with open(evo['graph-filename']) as f:
             graph_descr = f.readlines()
     elif 'graph-adjlist' in evo:
         graph_descr = evo['graph-adjlist']
     else:
-        raise FileNotFoundError('Graph description not found (use -g/--graph)')
+        util.die(__package__, FileNotFoundError(
+            'Graph description not found (use -g or -G)'))
 
     # generate graph
     if args.edges:
