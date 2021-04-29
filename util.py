@@ -1,5 +1,7 @@
+import errno
 import os
 import sys
+
 
 def make_dir_check_writable(path: str):
     """
@@ -31,16 +33,19 @@ def make_dir_check_writable(path: str):
             os.mkdir(acc)
         except FileExistsError:
             if not os.path.isdir(acc):
-                raise NotADirectoryError(20, "Not a directory: '%s'" % acc)
+                raise NotADirectoryError(
+                        errno.ENOTDIR, "Not a directory: '%s'" % acc)
             # dir exists
 
     # check leaf is writable
     if not os.access(path, os.W_OK | os.X_OK):
-        raise PermissionError(13, "Permission denied: '%s'" % path)
+        raise PermissionError(
+                errno.EACCES, "Permission denied: '%s'" % path)
 
     return path
 
-def map_to_int(input_list: list, forced:bool=False) -> dict[object, int]:
+
+def map_to_int(input_list: list, forced: bool = False) -> dict[object, int]:
     """
     Return map of integer values for items in input_list.
 
@@ -69,6 +74,7 @@ def map_to_int(input_list: list, forced:bool=False) -> dict[object, int]:
                 return {}
     return map
 
+
 def die(package: str, exception: Exception):
     """
     Gracefully print exception error and die.
@@ -80,3 +86,33 @@ def die(package: str, exception: Exception):
     msg = "%s: error: %s" % (package, exception)
     print(msg, file=sys.stderr)
     sys.exit(1)
+
+
+def uid_to_path(directory: str, prefix: str) -> str:
+    """
+    Return path of file in directory whose name starts with prefix.
+    Raises error if zero or more than one file is found.
+
+    Parameters:
+        * directory (str): directory to search a matching file in
+        * prefix (str): UID prefix to search for a matching file
+
+    Returns:
+        * str: matching file path
+
+    Raises:
+        * NotADirectoryError: if directory is not a directory
+        * FileNotFoundError: if no file or too many files in directory are
+            matching prefix
+    """
+    candidates = [f for f in os.listdir(directory) if f.startswith(prefix)
+                  and os.path.isfile(os.path.join(directory, f))]
+    if not candidates:
+        raise FileNotFoundError(
+                errno.ENOENT, "No matching file in '%s' for UID '%s'." %
+                (directory, prefix))
+    if len(candidates) > 1:
+        raise FileNotFoundError(
+                errno.ENOKEY, "Too many matching files in '%s' for UID '%s'." %
+                (directory, prefix))
+    return os.path.join(directory, candidates[0])
