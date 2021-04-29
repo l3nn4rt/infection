@@ -101,19 +101,9 @@ def main():
 
     # generate graph
     if args.graph_uid:
-        # graph UID can be file name prefix
-        candidates = [f for f in os.listdir(args.graph_dir)
-                if f.startswith(args.graph_uid)]
-        if not candidates:
-            util.die(__package__, FileNotFoundError(errno.ENOENT,
-                "No match for given UID: '%s'" % args.graph_uid))
-        elif len(candidates) > 1:
-            util.die(__package__, FileNotFoundError(errno.ENOKEY,
-                "Too many matches for given UID: '%s'" % args.graph_uid))
-        # unique match for the given UID
-        graph_path = os.path.join(args.graph_dir, candidates[0])
-        graph_uid = os.path.splitext(candidates[0])[0]
         try:
+            graph_path = util.uid_to_path(args.graph_dir, args.graph_uid)
+            graph_uid = os.path.splitext(os.path.basename(graph_path))[0]
             with open(graph_path) as f:
                 graph_lines = f.readlines()
         except OSError as e:
