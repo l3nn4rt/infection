@@ -5,7 +5,6 @@ Simulate epidemic spreading in a SI[R][S]-model based network.
 """
 
 import argparse
-import errno
 import hashlib
 import json
 import os
