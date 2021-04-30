@@ -67,6 +67,7 @@ class Evolution:
                 # recovered node becomes susceptible
                 elif node in self.__recovered and recovery_duration \
                         and self.__state_end[node] == round_n:
+                    self.__recovered.remove(node)
                     self.__susceptible.add(node)
                     self.__state_end.pop(node)
 
