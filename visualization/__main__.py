@@ -96,7 +96,10 @@ def main():
         except OSError as e:
             util.die(__package__, e)
     else:
-        evo = json.load(args.evolution_file)
+        try:
+            evo = json.load(args.evolution_file)
+        except json.JSONDecodeError as e:
+            util.die(__package__, e)
 
     # scan graph description sources in decreasing priority
     # - graph file handled by argparse

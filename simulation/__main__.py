@@ -92,12 +92,15 @@ def main():
     args = parser.parse_args()
 
     # check args ranges
-    assert args.infection >= 1, \
-            "infection: ROUNDS must be a positive integer"
-    assert 0 <= args.probability <= 1, \
-            "probability: PROBABILITY must be in [0,1]"
-    assert args.recovery == None or args.recovery >= 1, \
-            "recovery: ROUNDS must be a positive integer"
+    if args.infection < 1:
+        util.die(__package__, ValueError(
+            "infection: ROUNDS must be a positive integer"))
+    if args.probability < 0 or args.probability > 1:
+        util.die(__package__, ValueError(
+            "probability: PROBABILITY must be in [0,1]"))
+    if args.recovery is not None and args.recovery < 1:
+        util.die(__package__, ValueError(
+            "recovery: ROUNDS must be a positive integer"))
 
     # generate graph
     if args.graph_uid:
