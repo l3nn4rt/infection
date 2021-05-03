@@ -95,7 +95,7 @@ def main():
             NUM must be non-negative and not larger then the number of nodes in
             the graph.""", type=int)
     # save evolution instead of writing to standard output
-    parser.add_argument('--save', help="""Save evolution in evolution
+    parser.add_argument('-w', '--save', help="""Save evolution in evolution
             directory and return evolution UID.
             See also '--evolution-dir' for more info.""",
             action='store_true')
