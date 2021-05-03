@@ -28,6 +28,10 @@ def main():
             help="""Evolution directory path; this is created when needed. By
             default, use 'evolutions' in the working directory).""",
             type=str, default='evolutions')
+    # how many evolutions to generate
+    parser.add_argument('-c', '--count', metavar='NUM',
+            help="""Generate NUM infection evolutions for each probability.
+            By default, NUM is 1.""", type=int, default=1)
     # input graph:
     graph_g = parser.add_mutually_exclusive_group(required=True)
     # - by UID
@@ -67,7 +71,7 @@ def main():
             from different infection probability values. Use as infection
             probability each value from the linear space of COUNT evenly spaced
             samples in the interval [FIRST, LAST] (both sides included).
-            START and STOP must be in [0, 1]. Default COUNT is 11.""",
+            START and STOP must be in [0, 1]. By default, COUNT is 11.""",
             type=util.string_to_linspace)
     # immunization duration
     parser.add_argument('-r', '--recovery', metavar='ROUNDS',
@@ -97,6 +101,9 @@ def main():
     args = parser.parse_args()
 
     # check args ranges
+    if args.count < 0:
+        util.die(__package__, ValueError(
+            "count: NUM must be a non-negative integer"))
     if args.infection < 1:
         util.die(__package__, ValueError(
             "infection: ROUNDS must be a positive integer"))
@@ -154,15 +161,16 @@ def main():
             print('Evolution dir:', evo_dir)
 
     for prob in args.probability:
-        evo_uid = make_evolution(
-                g, zeroes, prob, args.infection,
-                args.recovery, args.save, args.evolution_dir)
+        for _ in range(args.count):
+            evo_uid = make_evolution(
+                    g, zeroes, prob, args.infection,
+                    args.recovery, args.save, args.evolution_dir)
 
-        if args.save:
-            if args.verbose:
-                print('Evolution UID:', evo_uid)
-            else:
-                print(evo_uid)
+            if args.save:
+                if args.verbose:
+                    print('Evolution UID:', evo_uid)
+                else:
+                    print(evo_uid)
 
 
 def make_evolution(
