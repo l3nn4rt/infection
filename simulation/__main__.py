@@ -61,9 +61,14 @@ def main():
             strings, in a "all-or-none" policy.""", choices=['always', 'never'],
             default='auto')
     # infection probability
-    parser.add_argument('-p', '--probability', metavar='VALUE',
-            help="""Probability a node has to infect nearby nodes on each round.
-            This values must be in [0,1].""", type=float, required=True)
+    parser.add_argument('-p', '--probability', metavar='FIRST[,LAST[,COUNT]]',
+            help="""Probability an infectious node has to infect nearby nodes
+            on each round. If LAST is specified, generate multiple evolutions
+            from different infection probability values. Use as infection
+            probability each value from the linear space of COUNT evenly spaced
+            samples in the interval [FIRST, LAST] (both sides included).
+            START and STOP must be in [0, 1]. Default COUNT is 11.""",
+            type=util.string_to_linspace)
     # immunization duration
     parser.add_argument('-r', '--recovery', metavar='ROUNDS',
             help="""How many rounds a recovered node is immune to the infection.
@@ -95,9 +100,9 @@ def main():
     if args.infection < 1:
         util.die(__package__, ValueError(
             "infection: ROUNDS must be a positive integer"))
-    if args.probability < 0 or args.probability > 1:
+    if min(args.probability) < 0 or max(args.probability) > 1:
         util.die(__package__, ValueError(
-            "probability: PROBABILITY must be in [0,1]"))
+            "probability: FIRST and LAST must be in [0, 1]"))
     if args.recovery is not None and args.recovery < 1:
         util.die(__package__, ValueError(
             "recovery: ROUNDS must be a positive integer"))
@@ -148,15 +153,16 @@ def main():
         if args.verbose:
             print('Evolution dir:', evo_dir)
 
-    evo_uid = make_evolution(
-            g, zeroes, args.probability, args.infection,
-            args.recovery, args.save, args.evolution_dir)
+    for prob in args.probability:
+        evo_uid = make_evolution(
+                g, zeroes, prob, args.infection,
+                args.recovery, args.save, args.evolution_dir)
 
-    if args.save:
-        if args.verbose:
-            print('Evolution UID:', evo_uid)
-        else:
-            print(evo_uid)
+        if args.save:
+            if args.verbose:
+                print('Evolution UID:', evo_uid)
+            else:
+                print(evo_uid)
 
 
 def make_evolution(
@@ -169,6 +175,7 @@ def make_evolution(
 
     evo_data = {}
     evo_data['graph-uid'] = graph.name
+    evo_data['probability'] = infection_probability
     evo_data['rounds'] = evolution.rounds
     txt = json.dumps(evo_data)
 
