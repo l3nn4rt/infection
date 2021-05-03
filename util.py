@@ -2,6 +2,8 @@ import errno
 import os
 import sys
 
+import numpy as np
+
 
 def make_dir_check_writable(path: str):
     """
@@ -19,7 +21,7 @@ def make_dir_check_writable(path: str):
         * NotADirectoryError: if path or any anchestor exists and is not a
             directory
         * PermissionError: if path or any anchestor can't be created because
-            of missing permission, or path is not writable
+        of missing permission, or path is not writable
 
     Error codes from: https://docs.python.org/3/library/errno.html
     """
@@ -75,6 +77,39 @@ def map_to_int(input_list: list, forced: bool = False) -> dict[object, int]:
     return map
 
 
+def string_to_linspace(string: str):
+    """
+    Parse string to generate an evenly spaced list of numbers.
+    The string format is: [START[,STOP[,NUM]]
+
+    Parameters:
+        * string (str): comma-separated representation of:
+            - start (float): first sample
+            - stop (float, optional): last sample; default is `start`
+            - num (int, optional): number of samples; default is 11
+
+    Returns:
+        * Iterable: linear space generated from the parsed string
+
+    Raises:
+        * TypeError: if string cannot be split into 1, 2 or 3 parts
+        * ValueError: if any part of the string cannot be converted to its
+        target type
+    """
+    # split string
+    params = string.split(',')
+    if len(params) == 1:
+        return [float(string)]
+    if not len(params) in (2, 3):
+        msg = 'expected 2 or 3 comma-separated values, got %s' % len(params)
+        raise TypeError(msg)
+    # parse np.linspace params
+    start, stop = [float(s) for s in params[:2]]
+    num = int(params[2]) if len(params) == 3 else 11
+    # round up to 8 decimal digits
+    return np.round(np.linspace(start, stop, num), 8)
+
+
 def die(package: str, exception: Exception):
     """
     Gracefully print exception error and die.
@@ -103,7 +138,7 @@ def uid_to_path(directory: str, prefix: str) -> str:
     Raises:
         * NotADirectoryError: if directory is not a directory
         * FileNotFoundError: if no file or too many files in directory are
-            matching prefix
+        matching prefix
     """
     candidates = [f for f in os.listdir(directory) if f.startswith(prefix)
                   and os.path.isfile(os.path.join(directory, f))]
