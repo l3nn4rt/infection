@@ -123,6 +123,7 @@ def main():
         g = nx.parse_edgelist(graph_lines)
     else:
         g = nx.parse_adjlist(graph_lines)
+    g.name = graph_uid
 
     # read infectious nodes
     if args.zero:
@@ -138,36 +139,58 @@ def main():
         zeroes.update({subs[label] for label in subs if label in zeroes})
         zeroes.difference_update(subs)
 
-    evolution = Evolution(g, zeroes, args.probability,
-                          args.infection, args.recovery)
-
-    evo_data = {}
-    evo_data['graph-uid'] = graph_uid
-    evo_data['rounds'] = evolution.rounds
-    txt = json.dumps(evo_data)
-
     if args.save:
-        # evolution UID consists of:
-        # - a fixed graph UID prefix
-        # - a random and (hopefully) unique string
-        evo_uid = "%s-%s" % (graph_uid[:8], uuid.uuid4().hex)
-        evo_name = "%s.json" % evo_uid
-        evo_path = os.path.join(args.evolution_dir, evo_name)
-
         try:
             evo_dir = util.make_dir_check_writable(args.evolution_dir)
-            with open(evo_path, 'w') as f:
-                f.write(txt)
         except OSError as e:
             util.die(__package__, e)
 
         if args.verbose:
             print('Evolution dir:', evo_dir)
+
+    evo_uid = make_evolution(
+            g, zeroes, args.probability, args.infection,
+            args.recovery, args.save, args.evolution_dir)
+
+    if args.save:
+        if args.verbose:
             print('Evolution UID:', evo_uid)
         else:
             print(evo_uid)
+
+
+def make_evolution(
+        graph, zeroes, infection_probability, infection_duration=1,
+        recovery_duration=None, save=False, evolution_dir=os.path.curdir):
+
+    evolution = Evolution(
+            graph, zeroes, infection_probability,
+            infection_duration, recovery_duration)
+
+    evo_data = {}
+    evo_data['graph-uid'] = graph.name
+    evo_data['rounds'] = evolution.rounds
+    txt = json.dumps(evo_data)
+
+    if save:
+        # evolution UID consists of:
+        # - a fixed graph UID prefix
+        # - a random and (hopefully) unique string
+        evo_uid = "%s-%s" % (graph.name[:8], uuid.uuid4().hex)
+        evo_name = "%s.json" % evo_uid
+        evo_path = os.path.join(evolution_dir, evo_name)
+
+        try:
+            with open(evo_path, 'w') as f:
+                f.write(txt)
+        except OSError as e:
+            util.die(__package__, e)
+
+        return evo_uid
     else:
         print(txt)
+        return None
+
 
 if __name__ == "__main__":
     main()
