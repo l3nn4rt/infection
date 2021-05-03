@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import os
+import random
 import uuid
 
 import networkx as nx
@@ -88,6 +89,11 @@ def main():
     zero_g.add_argument('-Z', '--zero-file', metavar='ZERO-FILE',
             help="""File containing the initially infectious nodes (one node per
             line; comments start with #).""", type=argparse.FileType())
+    # - choose randomly
+    zero_g.add_argument('-s', '--random-zeroes', metavar='NUM',
+            help="""Select NUM nodes randomly as initially infectious nodes.
+            NUM must be non-negative and not larger then the number of nodes in
+            the graph.""", type=int)
     # save evolution instead of writing to standard output
     parser.add_argument('--save', help="""Save evolution in evolution
             directory and return evolution UID.
@@ -137,10 +143,18 @@ def main():
         g = nx.parse_adjlist(graph_lines)
     g.name = graph_uid
 
-    # read infectious nodes
+    # infectious nodes:
     if args.zero:
+        # read from args
         zeroes = set(x for x in args.zero.split(',') if x in g)
+    elif args.random_zeroes is not None:
+        # choose randomly
+        if args.random_zeroes < 0 or args.random_zeroes > len(g.nodes):
+            util.die(__package__, ValueError(
+                "random zeroes: NUM must be in [0, %s]" % len(g.nodes)))
+        zeroes = set(random.sample([*g.nodes], args.random_zeroes))
     else:
+        # read from file
         lines = [l.split('#')[0].strip() for l in args.zero_file]
         zeroes = set(l for l in lines if l in g)
 
