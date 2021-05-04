@@ -71,8 +71,8 @@ def main():
             on each round. If LAST is specified, generate multiple evolutions
             from different infection probability values. Use as infection
             probability each value from the linear space of COUNT evenly spaced
-            samples in the interval [FIRST, LAST] (both sides included).
-            START and STOP must be in [0, 1]. By default, COUNT is 11.""",
+            samples in the interval [FIRST, LAST] (both sides included). START
+            and STOP must be in range [0, 1]. By default, COUNT is 11.""",
             type=util.string_to_linspace)
     # immunization duration
     parser.add_argument('-r', '--recovery', metavar='ROUNDS',
@@ -115,7 +115,7 @@ def main():
             "infection: ROUNDS must be a positive integer"))
     if min(args.probability) < 0 or max(args.probability) > 1:
         util.die(__package__, ValueError(
-            "probability: FIRST and LAST must be in [0, 1]"))
+            "probability: FIRST and LAST must be in range [0, 1]"))
     if args.recovery is not None and args.recovery < 1:
         util.die(__package__, ValueError(
             "recovery: ROUNDS must be a positive integer"))
@@ -151,7 +151,7 @@ def main():
         # choose randomly later on
         if args.random_zeroes < 0 or args.random_zeroes > len(g.nodes):
             util.die(__package__, ValueError(
-                "random zeroes: NUM must be in [0, %s]" % len(g.nodes)))
+                "random zeroes: NUM must be in range [0, %s]" % len(g.nodes)))
         zeroes = set()
     else:
         # read from file
