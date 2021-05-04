@@ -144,15 +144,15 @@ def main():
     g.name = graph_uid
 
     # infectious nodes:
-    if args.zero:
+    if args.zero is not None:
         # read from args
         zeroes = set(x for x in args.zero.split(',') if x in g)
     elif args.random_zeroes is not None:
-        # choose randomly
+        # choose randomly later on
         if args.random_zeroes < 0 or args.random_zeroes > len(g.nodes):
             util.die(__package__, ValueError(
                 "random zeroes: NUM must be in [0, %s]" % len(g.nodes)))
-        zeroes = set(random.sample([*g.nodes], args.random_zeroes))
+        zeroes = set()
     else:
         # read from file
         lines = [l.split('#')[0].strip() for l in args.zero_file]
@@ -176,6 +176,10 @@ def main():
 
     for prob in args.probability:
         for _ in range(args.count):
+            # choose zeroes
+            if args.random_zeroes is not None:
+                zeroes = set(random.sample([*g.nodes], args.random_zeroes))
+
             evo_uid = make_evolution(
                     g, zeroes, prob, args.infection,
                     args.recovery, args.save, args.evolution_dir)
