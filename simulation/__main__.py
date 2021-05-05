@@ -73,7 +73,7 @@ def main():
             probability each value from the linear space of COUNT evenly spaced
             samples in the interval [FIRST, LAST] (both sides included). START
             and STOP must be in range [0, 1]. By default, COUNT is 11.""",
-            type=util.string_to_linspace)
+            type=util.string_to_linspace, required=True)
     # immunization duration
     parser.add_argument('-r', '--recovery', metavar='ROUNDS',
             help="""How many rounds a recovered node is immune to the infection.

@@ -62,7 +62,7 @@ def main():
         # behaviour can't be avoided; instead we create a file whose content
         # is the same text that would be printed on stdout
         file_hash = hashlib.sha1(txt.encode()).hexdigest()
-        file_path = os.path.join(args.graph_dir, file_hash)
+        file_path = os.path.join(args.graph_dir, file_hash + '.adjlist')
 
         try:
             graph_dir = util.make_dir_check_writable(args.graph_dir)
