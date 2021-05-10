@@ -47,7 +47,7 @@ def make_dir_check_writable(path: str):
     return path
 
 
-def map_to_int(input_list: list, forced: bool = False) -> dict[object, int]:
+def map_to_int(input_list: list, forced: bool = False):
     """
     Return map of integer values for items in input_list.
 
