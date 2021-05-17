@@ -21,13 +21,13 @@ _plot_settings = {
 class Animation2D:
 
     def __init__(self, graph: nx.Graph, rounds: list,
-                 layout: Layout=Layout.SPRING):
+                 layout: Layout = Layout.SPRING):
         self.graph = graph
         self.rounds = rounds
         self.layout = layout.value['func'](self.graph)
 
-        self.fig, self.ax = plt.subplots(figsize=(12,8))
-        self.animation = ani.FuncAnimation(self.fig, self.__update__, \
+        self.fig, self.ax = plt.subplots(figsize=(12, 8))
+        self.animation = ani.FuncAnimation(self.fig, self.__update__,
                 frames=len(self.rounds))
 
         plt.show()
