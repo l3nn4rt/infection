@@ -50,5 +50,5 @@ python -m infection.visualization --help
 3. show animation and timeline
 
     ```sh
-    python -m infection.visualization -g $GRAPH_UID -e $EVOLUTION_UID -t -a
+    python -m infection.visualization -e $EVOLUTION_UID -a -t
     ```
