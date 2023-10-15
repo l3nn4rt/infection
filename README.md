@@ -18,7 +18,7 @@ A library for experimenting with SIR model.
 2. install dependencies
 
     ```sh
-    python -m pip install -r infection/requirements.txt
+    python -m pip install ./infection
     ```
 
 ## Usage

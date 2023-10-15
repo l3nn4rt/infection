@@ -1,0 +1,13 @@
+[project]
+name = "infection"
+description = "A library for experimenting with SIR model."
+version = "0.1.0"
+authors = [
+    { name = "l3nn4rt", email = "l3nn4rt@protonmail.com" }
+]
+readme = "README.md"
+dependencies = [
+    "matplotlib",
+    "networkx",
+    "scipy",
+]
